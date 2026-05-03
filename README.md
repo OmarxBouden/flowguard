@@ -53,8 +53,8 @@ Agents are trained using standard deep RL algorithms (e.g. PPO, or others as det
 
 *To be updated later, format too is up for debate.*
 
-| Agent | vs B-line (30 steps) | vs B-line (50 steps) | vs Meander (30 steps) | vs Meander (50 steps) | Total |
-|-------|---------------------|---------------------|----------------------|----------------------|-------|
-| Baseline | — | — | — | — | — |
-| NetObs | — | — | — | — | — |
-| NetFull | — | — | — | — | — |
+| Agent | vs B-line (30) | vs B-line (50) | vs B-line (100) | vs Meander (30) | vs Meander (50) | vs Meander (100) | Total |
+|-------|---------------|---------------|----------------|----------------|----------------|-----------------|-------|
+| Baseline | — | — | — | — | — | — | — |
+| NetObs | — | — | — | — | — | — | — |
+| NetFull | — | — | — | — | — | — | — |

@@ -1,4 +1,5 @@
-stable-baselines3>=2.0
+stable-baselines3==2.4.0 // CybORG requires exactly stable_baselines3==2.4.0, otherwise error encountered.
+sb3-contrib==2.4.0 // Needs to match the stable-baselines3 version.
 torch>=2.0
 numpy
 gymnasium
