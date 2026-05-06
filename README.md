@@ -49,6 +49,25 @@ Agents are trained using standard deep RL algorithms (e.g. PPO, or others as det
 
 ---
 
+## M1 — Reproducing CAGE 2 *(in progress)*
+
+**Evaluation protocol.** Mirrors `cage-challenge-2/CybORG/Evaluation/evaluation.py`: 100 episodes against each of `{B-line, Meander, Sleep}` at `{30, 50, 100}` step horizons; reported score is the sum of the 9 means. Wrote the constants to `scripts/config.py`.
+
+**Variants under comparison** (all trained on a mixed-red environment with seed 42 for reproducibility):
+
+| Variant | Algorithm | Notes |
+|---|---|---|
+| **PPO** | SB3 PPO, MlpPolicy | Headline baseline. |
+| **PPO + Greedy Decoy** | PPO + Cardiff-style heuristic | Pre-deploys decoys on Enterprise0/1/2 + Op_Server0 at episode start; same weights as PPO baseline. |
+| **PPO + FrameStack(4)** | PPO over last 4 obs | Cheap remedy for partial observability. |
+| **RecurrentPPO** | LSTM policy | Trained 3M steps; increased training steps from 1M to see if it was undertrained. Underperformed in our first training&testing round. |
+
+Added a placeholder (basically plain ppo)for Maskable PPO. Will be relevant once we add host-centric actions (M2 onwards).
+
+**Reproducibility.** `scripts/utils.py:MixedEnv` uses a seeded `random.Random` for red-agent selection; SB3 trainers and the sweep are also seeded. Retraining on the seeded scripts in progress.
+
+---
+
 ## Results
 
 *To be updated later, format too is up for debate.*
