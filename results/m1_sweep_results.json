@@ -1,0 +1,191 @@
+[
+  {
+    "run_id": "m1_sweep_ppo_bline_steps30_ts500k",
+    "max_steps": 30,
+    "total_timesteps": 500000,
+    "red_agent": "bline",
+    "mean_reward": -8.010000000000415
+  },
+  {
+    "run_id": "m1_sweep_ppo_meander_steps30_ts500k",
+    "max_steps": 30,
+    "total_timesteps": 500000,
+    "red_agent": "meander",
+    "mean_reward": -11.348999999999979
+  },
+  {
+    "run_id": "m1_sweep_ppo_mix_steps30_ts500k",
+    "max_steps": 30,
+    "total_timesteps": 500000,
+    "red_agent": "mix",
+    "mean_reward": -10.004000000000156
+  },
+  {
+    "run_id": "m1_sweep_ppo_bline_steps30_ts1000k",
+    "max_steps": 30,
+    "total_timesteps": 1000000,
+    "red_agent": "bline",
+    "mean_reward": -8.083000000000485
+  },
+  {
+    "run_id": "m1_sweep_ppo_meander_steps30_ts1000k",
+    "max_steps": 30,
+    "total_timesteps": 1000000,
+    "red_agent": "meander",
+    "mean_reward": -11.535999999999921
+  },
+  {
+    "run_id": "m1_sweep_ppo_mix_steps30_ts1000k",
+    "max_steps": 30,
+    "total_timesteps": 1000000,
+    "red_agent": "mix",
+    "mean_reward": -8.57100000000011
+  },
+  {
+    "run_id": "m1_sweep_ppo_bline_steps30_ts3000k",
+    "max_steps": 30,
+    "total_timesteps": 3000000,
+    "red_agent": "bline",
+    "mean_reward": -6.191000000000324
+  },
+  {
+    "run_id": "m1_sweep_ppo_meander_steps30_ts3000k",
+    "max_steps": 30,
+    "total_timesteps": 3000000,
+    "red_agent": "meander",
+    "mean_reward": -13.770999999999919
+  },
+  {
+    "run_id": "m1_sweep_ppo_mix_steps30_ts3000k",
+    "max_steps": 30,
+    "total_timesteps": 3000000,
+    "red_agent": "mix",
+    "mean_reward": -9.284000000000272
+  },
+  {
+    "run_id": "m1_sweep_ppo_bline_steps50_ts500k",
+    "max_steps": 50,
+    "total_timesteps": 500000,
+    "red_agent": "bline",
+    "mean_reward": -9.170000000000764
+  },
+  {
+    "run_id": "m1_sweep_ppo_meander_steps50_ts500k",
+    "max_steps": 50,
+    "total_timesteps": 500000,
+    "red_agent": "meander",
+    "mean_reward": -33.2270000000014
+  },
+  {
+    "run_id": "m1_sweep_ppo_mix_steps50_ts500k",
+    "max_steps": 50,
+    "total_timesteps": 500000,
+    "red_agent": "mix",
+    "mean_reward": -32.150999999999165
+  },
+  {
+    "run_id": "m1_sweep_ppo_bline_steps50_ts1000k",
+    "max_steps": 50,
+    "total_timesteps": 1000000,
+    "red_agent": "bline",
+    "mean_reward": -32.29299999999726
+  },
+  {
+    "run_id": "m1_sweep_ppo_meander_steps50_ts1000k",
+    "max_steps": 50,
+    "total_timesteps": 1000000,
+    "red_agent": "meander",
+    "mean_reward": -25.913000000000167
+  },
+  {
+    "run_id": "m1_sweep_ppo_mix_steps50_ts1000k",
+    "max_steps": 50,
+    "total_timesteps": 1000000,
+    "red_agent": "mix",
+    "mean_reward": -27.54899999999943
+  },
+  {
+    "run_id": "m1_sweep_ppo_bline_steps50_ts3000k",
+    "max_steps": 50,
+    "total_timesteps": 3000000,
+    "red_agent": "bline",
+    "mean_reward": -10.120000000000777
+  },
+  {
+    "run_id": "m1_sweep_ppo_meander_steps50_ts3000k",
+    "max_steps": 50,
+    "total_timesteps": 3000000,
+    "red_agent": "meander",
+    "mean_reward": -41.15400000000003
+  },
+  {
+    "run_id": "m1_sweep_ppo_mix_steps50_ts3000k",
+    "max_steps": 50,
+    "total_timesteps": 3000000,
+    "red_agent": "mix",
+    "mean_reward": -28.001999999999367
+  },
+  {
+    "run_id": "m1_sweep_ppo_bline_steps100_ts500k",
+    "max_steps": 100,
+    "total_timesteps": 500000,
+    "red_agent": "bline",
+    "mean_reward": -57.647000000005676
+  },
+  {
+    "run_id": "m1_sweep_ppo_meander_steps100_ts500k",
+    "max_steps": 100,
+    "total_timesteps": 500000,
+    "red_agent": "meander",
+    "mean_reward": -34.20999999999852
+  },
+  {
+    "run_id": "m1_sweep_ppo_mix_steps100_ts500k",
+    "max_steps": 100,
+    "total_timesteps": 500000,
+    "red_agent": "mix",
+    "mean_reward": -62.333000000003985
+  },
+  {
+    "run_id": "m1_sweep_ppo_bline_steps100_ts1000k",
+    "max_steps": 100,
+    "total_timesteps": 1000000,
+    "red_agent": "bline",
+    "mean_reward": -66.39000000000404
+  },
+  {
+    "run_id": "m1_sweep_ppo_meander_steps100_ts1000k",
+    "max_steps": 100,
+    "total_timesteps": 1000000,
+    "red_agent": "meander",
+    "mean_reward": -37.47299999999431
+  },
+  {
+    "run_id": "m1_sweep_ppo_mix_steps100_ts1000k",
+    "max_steps": 100,
+    "total_timesteps": 1000000,
+    "red_agent": "mix",
+    "mean_reward": -65.98200000000396
+  },
+  {
+    "run_id": "m1_sweep_ppo_bline_steps100_ts3000k",
+    "max_steps": 100,
+    "total_timesteps": 3000000,
+    "red_agent": "bline",
+    "mean_reward": -31.04999999999454
+  },
+  {
+    "run_id": "m1_sweep_ppo_meander_steps100_ts3000k",
+    "max_steps": 100,
+    "total_timesteps": 3000000,
+    "red_agent": "meander",
+    "mean_reward": -44.712000000001254
+  },
+  {
+    "run_id": "m1_sweep_ppo_mix_steps100_ts3000k",
+    "max_steps": 100,
+    "total_timesteps": 3000000,
+    "red_agent": "mix",
+    "mean_reward": -43.83699999999733
+  }
+]
