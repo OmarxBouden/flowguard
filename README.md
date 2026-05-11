@@ -5,7 +5,7 @@
 
 ## Milestones
 
-- [ ] **M1** — Familiarize with CybORG / CAGE 2. Train a defensive agent that performs well against the supplied red agents using a standard RL algorithm.
+- [x] **M1** — Familiarize with CybORG / CAGE 2. Train a defensive agent that performs well against the supplied red agents using a standard RL algorithm.
 - [ ] **M2** — Extend CAGE 2 with network-centric observations and actions (e.g. monitor traffic, block communication between endpoints).
 - [ ] **M3** — Train and compare three agents:
   - One using standard observations and standard actions
@@ -49,28 +49,51 @@ Agents are trained using standard deep RL algorithms (e.g. PPO, or others as det
 
 ---
 
-## M1 — Reproducing CAGE 2 *(in progress)*
+## M1 — Reproducing CAGE 2
 
-**Evaluation protocol.** Mirrors `cage-challenge-2/CybORG/Evaluation/evaluation.py`: 100 episodes against each of `{B-line, Meander, Sleep}` at `{30, 50, 100}` step horizons; reported score is the sum of the 9 means. Wrote the constants to `scripts/config.py`.
+**Evaluation protocol.** Mirrors `cage-challenge-2/CybORG/Evaluation/evaluation.py`: 100 episodes against each of `{B-line, Meander, Sleep}` at `{30, 50, 100}` step horizons; reported score is the sum of the 9 means. Constants live in `scripts/config.py`.
 
-**Variants under comparison** (all trained on a mixed-red environment with seed 42 for reproducibility):
+**Approach.** SB3 PPO (MlpPolicy, [64, 64]) trained against a mixed B-line / Meander opponent with seed 42 for 1M timesteps. Two decoy prologues are applied at inference on top of the trained model. Maskable PPO is kept as an M2 placeholder for when host-centric actions are added.
 
-| Variant | Algorithm | Notes |
-|---|---|---|
-| **PPO** | SB3 PPO, MlpPolicy | Headline baseline. |
-| **PPO + Greedy Decoy** | PPO + Cardiff-style heuristic | Pre-deploys decoys on Enterprise0/1/2 + Op_Server0 at episode start; same weights as PPO baseline. |
-| **PPO + FrameStack(4)** | PPO over last 4 obs | Cheap remedy for partial observability. |
-| **RecurrentPPO** | LSTM policy | Trained 3M steps; increased training steps from 1M to see if it was undertrained. Underperformed in our first training&testing round. |
+**Variants.**
 
-Added a placeholder (basically plain ppo)for Maskable PPO. Will be relevant once we add host-centric actions (M2 onwards).
+| Variant | Description |
+|---|---|
+| **PPO** | Plain SB3 PPO baseline. |
+| **PPO + Simple Decoy** | 4-action prologue: DecoyApache on Enterprise0/1/2 + Op_Server0, then defer to PPO. |
+| **PPO + Wide Decoy** | 17-action prologue across seven high-value hosts; the per-host action indices are taken from the Cardiff CAGE 2 submission, then defer to PPO. |
 
-**Reproducibility.** `scripts/utils.py:MixedEnv` uses a seeded `random.Random` for red-agent selection; SB3 trainers and the sweep are also seeded. Retraining on the seeded scripts in progress.
+All three reuse the same trained weights — the heuristics are inference-time only. Simple Decoy adds the smallest reasonable prologue (one decoy on each high-value host); Wide Decoy extends to multiple decoy types and more hosts.
+
+**Training opponent.** PPO is also trained against B-line only and Meander only as a sanity check on the mix choice; results are in the table below.
+
+**What we explored.** Frame-stacked observations, recurrent (LSTM) policies, and a scan-history observation augmentation were also evaluated across multiple overnight training rounds. None improved on the chosen lineup at our 1M-step budget; they are not part of the M1 surface here.
+
+**Reproducibility.** `scripts/utils.py:MixedEnv` uses a seeded `random.Random` for red-agent selection; SB3 trainers and the sweep are also seeded.
+
+### M1 Results
+
+Mean episode reward per (red, episode-length) combination, 100 episodes each. Sleep columns are 0 (omitted). Lower magnitude is better.
+
+| Variant | bline 30 | bline 50 | bline 100 | meander 30 | meander 50 | meander 100 | **Total** |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| PPO baseline (bline-trained) | -12.0 | -18.4 | -41.0 | -12.7 | -30.5 | -87.3 | -201.9 |
+| PPO baseline (meander-trained) | -14.7 | -31.9 | -92.9 | -11.5 | -27.9 | -71.7 | -250.5 |
+| **PPO baseline (mix-trained)** | **-9.0** | -16.4 | -35.1 | -12.8 | -32.2 | -85.5 | **-190.9** |
+| **PPO + Simple Decoy** | -9.6 | **-15.7** | -34.7 | -12.0 | -31.6 | -79.3 | **-182.9** |
+| **PPO + Wide Decoy** | -11.6 | -19.7 | -40.0 | -11.9 | **-27.2** | **-69.3** | **-179.8** |
+
+![Algorithm comparison](results/plot_algorithm_comparison_mix.png)
+
+**Reading the table.** Mix-trained PPO is the best training distribution (5% better than B-line, 24% better than Meander), so it is the headline baseline. The two prologues split the per-red wins: Simple's shorter prologue is better against B-line (focused attacker, decoys quickly), Wide's longer prologue is better against Meander (random attacker, more entry hosts covered). Wide Decoy is the overall winner at **-179.8**.
+
+**On the gap to published top teams.** The Cardiff CAGE 2 winning submission reaches **-54.57** with the same nominal recipe (PPO + greedy decoys). The single largest difference is training budget: Cardiff trained for **10M timesteps (10× ours)**. Other differences in their submission (a reduced ~36-action space, runtime red-agent fingerprinting) are smaller contributors. M1's deliverable here is a reproducible baseline against which M2's network-observation extensions will be measured — not a leaderboard run.
 
 ---
 
-## Results
+## M3 Results
 
-*To be updated later, format too is up for debate.*
+*To be filled in after M3.*
 
 | Agent | vs B-line (30) | vs B-line (50) | vs B-line (100) | vs Meander (30) | vs Meander (50) | vs Meander (100) | Total |
 |-------|---------------|---------------|----------------|----------------|----------------|-----------------|-------|
