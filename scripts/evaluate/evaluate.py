@@ -17,12 +17,21 @@ from CybORG.Agents import B_lineAgent, RedMeanderAgent, SleepAgent
 from CybORG.Agents.Wrappers import ChallengeWrapper
 from scripts.config import SCENARIO_PATH, RESULTS_DIR, EVAL_EPISODES, EVAL_STEPS
 from scripts.train.ppo_greedy_decoy import SimpleDecoyPolicy, WideDecoyPolicy
+from agents.green import BehavioralGreenAgent
 
 RED_AGENTS = {
     'bline':   B_lineAgent,
     'meander': RedMeanderAgent,
     'sleep':   SleepAgent,
 }
+
+
+def _green_override(green):
+    if green == 'off':
+        return {}
+    if green == 'behavioral':
+        return {'Green': BehavioralGreenAgent}
+    raise ValueError(f"Unknown green={green!r}")
 
 
 class _PassthroughPolicy:
@@ -61,10 +70,14 @@ def run_episode(policy, env):
     return total
 
 
-def evaluate_combination(policy, red_cls, max_steps, n_episodes):
-    cyborg = CybORG(SCENARIO_PATH, 'sim', agents={'Red': red_cls})
-    env = ChallengeWrapper(env=cyborg, agent_name='Blue', max_steps=max_steps)
-    rewards = [run_episode(policy, env) for _ in range(n_episodes)]
+def evaluate_combination(policy, red_cls, max_steps, n_episodes, green='off'):
+    agents = {'Red': red_cls, **_green_override(green)}
+    rewards = []
+    for _ in range(n_episodes):
+        # Fresh CybORG per episode so green's per-session state stays clean.
+        cyborg = CybORG(SCENARIO_PATH, 'sim', agents=agents)
+        env = ChallengeWrapper(env=cyborg, agent_name='Blue', max_steps=max_steps)
+        rewards.append(run_episode(policy, env))
     return float(np.mean(rewards)), float(np.std(rewards))
 
 
@@ -74,17 +87,21 @@ def main():
     parser.add_argument('--algo',  required=True,
                         choices=['ppo', 'simple_decoy', 'wide_decoy', 'masked'])
     parser.add_argument('--label', default=None, help='Label for results file (default: model filename)')
+    parser.add_argument('--green', default='off', choices=['off', 'behavioral'],
+                        help='Green-agent mode (default: off, matches M1 baseline)')
     args = parser.parse_args()
 
     label = args.label or os.path.basename(args.model)
     policy = load_policy(args.model, args.algo)
 
-    results = {'label': label, 'algo': args.algo, 'combinations': {}, 'total': 0.0}
+    results = {'label': label, 'algo': args.algo, 'green': args.green,
+               'combinations': {}, 'total': 0.0}
     for red_name, red_cls in RED_AGENTS.items():
         for max_steps in EVAL_STEPS:
             key = f"{red_name}_{max_steps}"
             print(f"Evaluating: {key} ...")
-            mean, std = evaluate_combination(policy, red_cls, max_steps, EVAL_EPISODES)
+            mean, std = evaluate_combination(policy, red_cls, max_steps, EVAL_EPISODES,
+                                             green=args.green)
             results['combinations'][key] = {'mean': mean, 'std': std}
             results['total'] += mean
             print(f"  mean={mean:.2f}  std={std:.2f}")
