@@ -1,0 +1,13 @@
+diff --git a/Debugged_CybORG/CybORG/CybORG/Shared/Actions/GreenActions/GreenPortScan.py b/Debugged_CybORG/CybORG/CybORG/Shared/Actions/GreenActions/GreenPortScan.py
+index c856312..b0ae330 100644
+--- a/Debugged_CybORG/CybORG/CybORG/Shared/Actions/GreenActions/GreenPortScan.py
++++ b/Debugged_CybORG/CybORG/CybORG/Shared/Actions/GreenActions/GreenPortScan.py
+@@ -22,7 +22,7 @@ class GreenPortScan(ConcreteAction):
+                 self.ip_address = ip
+                 break
+          
+-        from_host = state.sessions['Red'][self.session].host
++        from_host = state.sessions[self.agent][self.session].host
+         target_host: Host = state.hosts[state.ip_addresses[self.ip_address]]
+         ports = ['all']
+         for ip in ip_map:
