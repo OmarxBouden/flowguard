@@ -1,7 +1,6 @@
 {
   "label": "m1_ppo_simple_decoy_mix",
   "algo": "simple_decoy",
-  "obs_aug": "none",
   "combinations": {
     "bline_30": {
       "mean": -9.598999999999997,
