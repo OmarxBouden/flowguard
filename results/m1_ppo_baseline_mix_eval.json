@@ -1,7 +1,6 @@
 {
   "label": "m1_ppo_baseline_mix",
   "algo": "ppo",
-  "obs_aug": "none",
   "combinations": {
     "bline_30": {
       "mean": -8.994999999999997,
