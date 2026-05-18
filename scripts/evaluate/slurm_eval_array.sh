@@ -56,4 +56,5 @@ python -m scripts.evaluate.evaluate \
   --n_simulations "$N_SIMULATIONS" \
   --depth "$DEPTH" \
   --c "$C" \
-  --label "$LABEL"
+  --label "$LABEL" \
+  --green behavioral

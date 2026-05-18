@@ -12,6 +12,7 @@ Usage:
 """
 import os, json, argparse
 import numpy as np
+from tqdm import tqdm
 from CybORG import CybORG
 from CybORG.Agents import B_lineAgent, RedMeanderAgent, SleepAgent
 from CybORG.Agents.Wrappers import ChallengeWrapper
@@ -58,8 +59,13 @@ def load_policy(model_path, algo, **kwargs):
         return WideDecoyPolicy(PPO.load(model_path))
     if algo == 'c_pomcp':
         from agents.c_pomcp_agent import CPOMCPAgent
+        green_cls = None
+        if kwargs.get('green', 'off') == 'behavioral':
+            from agents.green import BehavioralGreenAgent
+            green_cls = BehavioralGreenAgent
         return CPOMCPAgent(
             scenario_path=SCENARIO_PATH,
+            green_agent_cls=green_cls,
             n_particles=kwargs.get('n_particles', 1000),
             search_time=kwargs.get('search_time', None),
             n_simulations=kwargs.get('n_simulations', 100),
@@ -81,10 +87,10 @@ def run_episode(policy, env):
     return total
 
 
-def evaluate_combination(policy, red_cls, max_steps, n_episodes, green='off'):
+def evaluate_combination(policy, red_cls, max_steps, n_episodes, green='off', desc=''):
     agents = {'Red': red_cls, **_green_override(green)}
     rewards = []
-    for _ in range(n_episodes):
+    for _ in tqdm(range(n_episodes), desc=desc, unit='ep', dynamic_ncols=True):
         # Fresh CybORG per episode so green's per-session state stays clean.
         cyborg = CybORG(SCENARIO_PATH, 'sim', agents=agents)
         env = ChallengeWrapper(env=cyborg, agent_name='Blue', max_steps=max_steps)
@@ -123,6 +129,7 @@ def main():
         depth=args.depth,
         gamma=args.gamma,
         c=args.c,
+        green=args.green,
     )
 
     # Determine which combinations to run
@@ -140,7 +147,7 @@ def main():
         key = f"{red_name}_{max_steps}"
         print(f"Evaluating: {key} ...")
         mean, std = evaluate_combination(policy, red_cls, max_steps, EVAL_EPISODES,
-                                             green=args.green)
+                                         green=args.green, desc=key)
         results['combinations'][key] = {'mean': mean, 'std': std}
         results['total'] += mean
         print(f"  mean={mean:.2f}  std={std:.2f}")

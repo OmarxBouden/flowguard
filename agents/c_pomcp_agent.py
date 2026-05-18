@@ -65,6 +65,7 @@ class CPOMCPAgent:
         self,
         scenario_path: str = None,
         red_agent_cls=None,
+        green_agent_cls=None,
         n_particles: int = 200,
         search_time: float = None,
         n_simulations: int = 100,
@@ -79,7 +80,8 @@ class CPOMCPAgent:
             red_agent_cls = B_lineAgent
 
         # Step 1: build the simulation sandbox
-        self._sandbox = CybORGSandbox(scenario_path, red_agent_cls)
+        self._sandbox = CybORGSandbox(scenario_path, red_agent_cls,
+                                      green_agent_cls=green_agent_cls)
         self._action_map = self._sandbox.build_action_map()
 
         # Step 3: particle filter

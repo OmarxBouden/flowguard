@@ -20,9 +20,10 @@ class CybORGSandbox:
     the real evaluation environment through this object.
     """
 
-    def __init__(self, scenario_path: str, red_agent_cls):
+    def __init__(self, scenario_path: str, red_agent_cls, green_agent_cls=None):
         self._scenario_path = scenario_path
         self._red_agent_cls = red_agent_cls
+        self._green_agent_cls = green_agent_cls
         self._build_env()
 
     # ------------------------------------------------------------------
@@ -30,11 +31,10 @@ class CybORGSandbox:
     # ------------------------------------------------------------------
 
     def _build_env(self):
-        cyborg = CybORG(
-            self._scenario_path,
-            "sim",
-            agents={"Red": self._red_agent_cls},  # pass class; CybORG instantiates it
-        )
+        agents = {"Red": self._red_agent_cls}
+        if self._green_agent_cls is not None:
+            agents["Green"] = self._green_agent_cls
+        cyborg = CybORG(self._scenario_path, "sim", agents=agents)
         self._cyborg = cyborg
         self._sim_ctrl = cyborg.environment_controller
 
