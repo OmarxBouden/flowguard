@@ -5,14 +5,38 @@ targets uniformly) with several distinct behavior profiles dispatched per
 source host. The agent picks one session per env step, weighted by activity
 level, then samples a profile-appropriate action.
 
-Wiring: pass ``agents={'Green': BehavioralGreenAgent}`` to ``CybORG(...)``.
-No scenario edits required.
+Wiring options:
+  - YAML: reference ``BehavioralGreenAgent`` in ``Scenario2_M2.yaml``; the
+    import side-effect in ``agents/green/__init__.py`` registers the class
+    with CybORG.Agents so the scenario loader can find it.
+  - Runtime: pass ``agents={'Green': BehavioralGreenAgent}`` to ``CybORG(...)``.
+
+Seeding for reproducibility: call ``set_next_seed(seed)`` before constructing
+``CybORG(...)``. Each fresh instance of ``BehavioralGreenAgent`` picks up the
+seed once and seeds its internal RNG. Eval scripts call this per-episode.
 """
 import random
 from collections import defaultdict
 
 from CybORG.Agents.SimpleAgents.BaseAgent import BaseAgent
 from CybORG.Shared.Actions import Sleep, GreenPortScan, GreenConnection
+
+
+# One-shot seed: set by ``set_next_seed(seed)``, consumed by the next
+# ``BehavioralGreenAgent.__init__()``, then cleared back to None. This pattern
+# lets us seed via CybORG()'s agent class instantiation (no constructor args).
+_NEXT_SEED = None
+
+
+def set_next_seed(seed):
+    """Set the seed for the next BehavioralGreenAgent instance.
+
+    Consumed on first ``__init__`` after the call; cleared afterwards.
+    Callers (eval / training loops) invoke this before each fresh ``CybORG()``
+    construction to make per-episode green behavior reproducible.
+    """
+    global _NEXT_SEED
+    _NEXT_SEED = seed
 
 
 # Session id → source-host name. Order matches Scenario2.yaml
@@ -69,7 +93,9 @@ PROFILES = {
 
 class BehavioralGreenAgent(BaseAgent):
     def __init__(self):
-        self._rng = random.Random()
+        global _NEXT_SEED
+        self._rng = random.Random(_NEXT_SEED)
+        _NEXT_SEED = None  # consume the one-shot seed
         self._sessions = list(SESSION_HOST.keys())
         self._weights = [PROFILES[SESSION_HOST[s]]['weight'] for s in self._sessions]
         # (session_id, target_host) tracker — scan once, then connect freely.
