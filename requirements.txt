@@ -1,6 +1,27 @@
-# CybORG requires exactly these versions
+# Mirrors environment.yml. Keep both in sync.
+
+# RL training stack — CybORG requires exactly these versions
 stable-baselines3==2.4.0
 sb3-contrib==2.4.0
-torch>=2.0
-numpy
-gymnasium
+torch==2.3.1 --index-url https://download.pytorch.org/whl/cpu
+numpy==1.24.3
+gymnasium==1.0.0
+gym==0.26.2
+gym-notices==0.0.8
+
+# Simulator + scenario utilities
+networkx==3.1
+prettytable==3.10.0
+PyYAML==6.0.1
+paramiko==3.4.0
+cryptography==42.0.8
+cloudpickle==3.0.0
+
+# Eval, plots, progress
+matplotlib==3.7.5
+pandas==2.0.3
+tqdm==4.66.4
+rich==13.7.1
+
+# Testing
+pytest==8.2.2

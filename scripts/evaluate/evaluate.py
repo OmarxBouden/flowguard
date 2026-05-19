@@ -158,7 +158,6 @@ def main():
         red_name, max_steps = args.red, args.max_steps
         out_path = f"{RESULTS_DIR}/{label}_{red_name}_{max_steps}_partial.json"
     else:
-        print(f"\nTotal score: {results['total']:.2f}")
         out_path = f"{RESULTS_DIR}/{label}_eval.json"
     with open(out_path, 'w') as f:
         json.dump(results, f, indent=2)
