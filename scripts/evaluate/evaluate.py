@@ -5,10 +5,13 @@ Mirrors cage-challenge-2/CybORG/Evaluation/evaluation.py.
 Every variant runs through the same loop. `load_policy` dispatches on `--algo`
 and returns a uniform Policy (reset, predict).
 
+The scenario file is the single source of truth for whether green traffic is
+active: Scenario2.yaml binds Green to SleepAgent (M1, silent); Scenario2_M2.yaml
+binds Green to BehavioralGreenAgent (M2, active). Select via `--scenario`.
+
 Usage:
   python -m scripts.evaluate.evaluate --model models/m1_ppo_baseline_mix --algo ppo
-  python -m scripts.evaluate.evaluate --model models/m1_ppo_baseline_mix --algo simple_decoy --label m1_ppo_simple_decoy_mix
-  python -m scripts.evaluate.evaluate --model models/m1_ppo_baseline_mix --algo wide_decoy   --label m1_ppo_wide_decoy_mix
+  python -m scripts.evaluate.evaluate --model models/m2_ppo_baseline_mix --algo ppo --scenario m2 --seed 42
 """
 import os, json, argparse, random
 import numpy as np
@@ -18,7 +21,9 @@ from CybORG.Agents import B_lineAgent, RedMeanderAgent, SleepAgent
 from CybORG.Agents.Wrappers import ChallengeWrapper
 from scripts.config import SCENARIO_PATH, SCENARIO_PATH_M2, RESULTS_DIR, EVAL_EPISODES, EVAL_STEPS
 from scripts.train.ppo_greedy_decoy import SimpleDecoyPolicy, WideDecoyPolicy
-from agents.green import BehavioralGreenAgent, set_next_seed
+# Side-effect: registers BehavioralGreenAgent in CybORG.Agents so Scenario2_M2
+# can resolve it by name. Must run before any CybORG(...) construction.
+from agents.green import set_next_seed  # noqa: F401
 
 SCENARIOS = {'m1': SCENARIO_PATH, 'm2': SCENARIO_PATH_M2}
 
@@ -27,14 +32,6 @@ RED_AGENTS = {
     'meander': RedMeanderAgent,
     'sleep':   SleepAgent,
 }
-
-
-def _green_override(green):
-    if green == 'off':
-        return {}
-    if green == 'behavioral':
-        return {'Green': BehavioralGreenAgent}
-    raise ValueError(f"Unknown green={green!r}")
 
 
 class _PassthroughPolicy:
@@ -61,13 +58,10 @@ def load_policy(model_path, algo, **kwargs):
         return WideDecoyPolicy(PPO.load(model_path))
     if algo == 'c_pomcp':
         from agents.c_pomcp_agent import CPOMCPAgent
-        green_cls = None
-        if kwargs.get('green', 'off') == 'behavioral':
-            from agents.green import BehavioralGreenAgent
-            green_cls = BehavioralGreenAgent
+        # Green class comes from the scenario YAML inside the sandbox, no
+        # separate override needed.
         return CPOMCPAgent(
             scenario_path=kwargs.get('scenario_path', SCENARIO_PATH),
-            green_agent_cls=green_cls,
             n_particles=kwargs.get('n_particles', 1000),
             search_time=kwargs.get('search_time', None),
             n_simulations=kwargs.get('n_simulations', 100),
@@ -90,8 +84,8 @@ def run_episode(policy, env):
 
 
 def evaluate_combination(policy, red_cls, max_steps, n_episodes,
-                         scenario_path=SCENARIO_PATH, green='off', desc='', seed=None):
-    agents = {'Red': red_cls, **_green_override(green)}
+                         scenario_path=SCENARIO_PATH, desc='', seed=None):
+    agents = {'Red': red_cls}
     rewards = []
     # Master RNG that derives a per-episode green seed. Makes eval reproducible
     # when --seed is passed; otherwise behavior is non-deterministic as before.
@@ -124,10 +118,8 @@ def main():
     parser.add_argument('--depth',         type=int,   default=4,     help='Rollout depth (paper: 4)')
     parser.add_argument('--gamma',         type=float, default=0.99,  help='Discount factor γ (paper: 0.99)')
     parser.add_argument('--c',             type=float, default=0.5,   help='UCT exploration constant (paper: 0.5)')
-    parser.add_argument('--green', default='off', choices=['off', 'behavioral'],
-                        help='Green-agent mode (default: off, matches M1 baseline). With --scenario m2 the YAML already binds BehavioralGreenAgent, so leaving this off still gives green-on.')
     parser.add_argument('--scenario', default='m1', choices=['m1', 'm2'],
-                        help='Which scenario file to load. m1 = Scenario2.yaml (Green=Sleep); m2 = Scenario2_M2.yaml (Green=BehavioralGreenAgent).')
+                        help='m1 = Scenario2.yaml (Green=Sleep, no traffic). m2 = Scenario2_M2.yaml (Green=BehavioralGreenAgent).')
     parser.add_argument('--seed', type=int, default=None,
                         help='Master seed for per-episode green RNG. When set, eval is reproducible across runs.')
     args = parser.parse_args()
@@ -143,7 +135,6 @@ def main():
         depth=args.depth,
         gamma=args.gamma,
         c=args.c,
-        green=args.green,
     )
 
     # Determine which combinations to run
@@ -156,8 +147,7 @@ def main():
         partial = False
 
     results = {'label': label, 'algo': args.algo, 'scenario': args.scenario,
-               'green': args.green, 'seed': args.seed,
-               'combinations': {}, 'total': 0.0}
+               'seed': args.seed, 'combinations': {}, 'total': 0.0}
     for red_name, red_cls, max_steps in run_combos:
         key = f"{red_name}_{max_steps}"
         print(f"Evaluating: {key} ...")
@@ -167,7 +157,7 @@ def main():
         cell_seed = (args.seed + hash(key)) & 0xFFFFFFFF if args.seed is not None else None
         mean, std = evaluate_combination(policy, red_cls, max_steps, EVAL_EPISODES,
                                          scenario_path=scenario_path,
-                                         green=args.green, desc=key, seed=cell_seed)
+                                         desc=key, seed=cell_seed)
         results['combinations'][key] = {'mean': mean, 'std': std}
         results['total'] += mean
         print(f"  mean={mean:.2f}  std={std:.2f}")
