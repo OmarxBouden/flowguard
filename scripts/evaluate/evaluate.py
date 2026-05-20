@@ -21,6 +21,7 @@ from CybORG.Agents import B_lineAgent, RedMeanderAgent, SleepAgent
 from CybORG.Agents.Wrappers import ChallengeWrapper
 from scripts.config import SCENARIO_PATH, SCENARIO_PATH_M2, RESULTS_DIR, EVAL_EPISODES, EVAL_STEPS
 from scripts.train.ppo_greedy_decoy import SimpleDecoyPolicy, WideDecoyPolicy
+from scripts.utils import _wrap_obs
 # Side-effect: registers BehavioralGreenAgent in CybORG.Agents so Scenario2_M2
 # can resolve it by name. Must run before any CybORG(...) construction.
 from agents.green import set_next_seed  # noqa: F401
@@ -84,18 +85,22 @@ def run_episode(policy, env):
 
 
 def evaluate_combination(policy, red_cls, max_steps, n_episodes,
-                         scenario_path=SCENARIO_PATH, desc='', seed=None):
+                         scenario_path=SCENARIO_PATH, obs='base', desc='', seed=None):
     agents = {'Red': red_cls}
     rewards = []
-    # Master RNG that derives a per-episode green seed. Makes eval reproducible
-    # when --seed is passed; otherwise behavior is non-deterministic as before.
+    # Master RNG derives per-episode green + IDS seeds. Eval is reproducible
+    # when --seed is passed; non-deterministic otherwise.
     rng = random.Random(seed) if seed is not None else None
     for _ in tqdm(range(n_episodes), desc=desc, unit='ep', dynamic_ncols=True):
         if rng is not None:
             set_next_seed(rng.randint(0, 2**32 - 1))
+            ids_seed = rng.randint(0, 2**32 - 1)
+        else:
+            ids_seed = None
         # Fresh CybORG per episode so green's per-session state stays clean.
         cyborg = CybORG(scenario_path, 'sim', agents=agents)
-        env = ChallengeWrapper(env=cyborg, agent_name='Blue', max_steps=max_steps)
+        base = ChallengeWrapper(env=cyborg, agent_name='Blue', max_steps=max_steps)
+        env = _wrap_obs(base, obs, ids_seed=ids_seed)
         rewards.append(run_episode(policy, env))
     return float(np.mean(rewards)), float(np.std(rewards))
 
@@ -120,8 +125,10 @@ def main():
     parser.add_argument('--c',             type=float, default=0.5,   help='UCT exploration constant (paper: 0.5)')
     parser.add_argument('--scenario', default='m1', choices=['m1', 'm2'],
                         help='m1 = Scenario2.yaml (Green=Sleep, no traffic). m2 = Scenario2_M2.yaml (Green=BehavioralGreenAgent).')
+    parser.add_argument('--obs', default='base', choices=['base', 'netobs'],
+                        help="Observation wrapping. base = 52-d M1 vector. netobs = 55-d with 3 IDS subnet-recon bits appended (PR2).")
     parser.add_argument('--seed', type=int, default=None,
-                        help='Master seed for per-episode green RNG. When set, eval is reproducible across runs.')
+                        help='Master seed for per-episode green + IDS RNGs. When set, eval is reproducible across runs.')
     args = parser.parse_args()
 
     scenario_path = SCENARIOS[args.scenario]
@@ -147,7 +154,8 @@ def main():
         partial = False
 
     results = {'label': label, 'algo': args.algo, 'scenario': args.scenario,
-               'seed': args.seed, 'combinations': {}, 'total': 0.0}
+               'obs': args.obs, 'seed': args.seed,
+               'combinations': {}, 'total': 0.0}
     for red_name, red_cls, max_steps in run_combos:
         key = f"{red_name}_{max_steps}"
         print(f"Evaluating: {key} ...")
@@ -156,7 +164,7 @@ def main():
         # always yields the same per-cell sequence.
         cell_seed = (args.seed + hash(key)) & 0xFFFFFFFF if args.seed is not None else None
         mean, std = evaluate_combination(policy, red_cls, max_steps, EVAL_EPISODES,
-                                         scenario_path=scenario_path,
+                                         scenario_path=scenario_path, obs=args.obs,
                                          desc=key, seed=cell_seed)
         results['combinations'][key] = {'mean': mean, 'std': std}
         results['total'] += mean

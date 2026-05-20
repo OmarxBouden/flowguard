@@ -20,3 +20,9 @@ EVAL_STEPS = [30, 50, 100]
 DEFAULT_MAX_STEPS = 50
 DEFAULT_TIMESTEPS = 1_000_000
 SEED = 42
+
+# IDS detection rates (PR2)
+IDS_P_TP = 0.95   # P(flag = 1 | red is reconning the subnet)
+IDS_P_FP = 0.05   # P(flag = 1 | green is reconning the subnet)
+# A small background false-positive (p_fp / 5) fires when neither red nor green
+# is reconning the subnet — represents IDS sensor noise.
